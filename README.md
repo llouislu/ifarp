@@ -35,6 +35,27 @@ CREATE TABLE `iploc` (
     `loc` VARCHAR(64) NULL
 )  ENGINE=INNODB DEFAULT CHARACTER SET=UTF8;
 ```
+创建查询函数（可选）
+```
+DELIMITER ;;
+CREATE FUNCTION `getIPLocation`(ip INT) RETURNS varchar(64) CHARSET utf8
+    DETERMINISTIC
+BEGIN
+DECLARE iploc varchar(64);
+SET iploc=(
+SELECT 
+    loc
+FROM
+    ipip.iploc
+WHERE
+    ip >= iploc.startIpNum
+        AND ip <= iploc.endIpNum
+LIMIT 1
+);
+RETURN iploc;
+END ;;
+DELIMITER ;
+```
 
 ### 查询
 
@@ -45,10 +66,19 @@ SELECT
 FROM
     `iploc`
 WHERE
-    INET_ATON(@ip) <= endIpNum
+    ip >= iploc.startIpNum
+        AND ip <= iploc.endIpNum
 LIMIT 1;
 
 # 输出
 # @ip, loc
 # 127.0.0.1, 局域网 局域网
+```
+使用函数查询（可选）
+```
+select <数据库名>.getIPLocation(2130706433);
+
+# 输出
+# 数据库名.getIPLocation(2130706433)
+# 局域网, 局域网
 ```
